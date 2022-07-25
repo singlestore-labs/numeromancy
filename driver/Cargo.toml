@@ -1,0 +1,12 @@
+[package]
+name = "numeromancy-driver"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+argmin = { git = "https://github.com/argmin-rs/argmin.git" }
+argmin-math = { git = "https://github.com/argmin-rs/argmin.git" }
+argmin_testfunctions = "0.1.1"
+mysql = "*"
+byte-slice-cast = "1.2.1"
+simple-error = "0.2.3"

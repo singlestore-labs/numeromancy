@@ -1,8 +1,10 @@
-create database if not exists argmin;
-use argmin;
+create database if not exists numeromancy;
+use numeromancy;
 
-create or replace function solve as wasm
-  from local infile "target/wasm32-wasi/release/numeromancy.wasm"
-  with wit from local infile "interface.wit";
+create or replace function opt_cost as wasm
+  from local infile "target/wasm32-wasi/release/numeromancy_problem.wasm"
+  with wit from local infile "problem/interface.wit";
 
-select solve();
+create or replace function opt_gradient as wasm
+  from local infile "target/wasm32-wasi/release/numeromancy_problem.wasm"
+  with wit from local infile "problem/interface.wit";

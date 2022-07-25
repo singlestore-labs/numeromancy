@@ -1,19 +1,2 @@
-[package]
-name = "numeromancy"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-wit-bindgen-rust = { git = "https://github.com/bytecodealliance/wit-bindgen.git" }
-argmin = { git = "https://github.com/carlsverre/argmin", rev = "1dd1b4065e7fca6fff2fb24ea8bd64108df4c49e", features = [
-    "wasm-bindgen",
-] }
-argmin-math = { git = "https://github.com/carlsverre/argmin", rev = "1dd1b4065e7fca6fff2fb24ea8bd64108df4c49e" }
-argmin_testfunctions = { version = "0.1.1" }
-serde = { version = "1.0", features = ["derive"] }
-bincode = { version = "1.0" }
-
-[lib]
-crate-type = ["cdylib"]
+[workspace]
+members = ["driver", "problem"]
