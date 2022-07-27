@@ -1,4 +1,4 @@
 type vec-f64 = list<u8>
 
-opt-cost: func(param: vec-f64) -> float64
-opt-gradient: func(param: vec-f64) -> vec-f64
+log-regression-cost: func(param: vec-f64, x: vec-f64) -> float64
+log-regression-gradient: func(param: vec-f64, x: vec-f64) -> vec-f64
