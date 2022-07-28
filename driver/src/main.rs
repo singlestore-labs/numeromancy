@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 use argmin::prelude::*;
 use argmin::solver::linesearch::MoreThuenteLineSearch;
 use argmin::solver::quasinewton::BFGS;
@@ -10,7 +12,7 @@ use simple_error::SimpleError;
 type SimpleResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 struct ProblemExecutor {
-    pool: Pool,
+    conn: RefCell<mysql::PooledConn>,
 }
 
 impl ArgminOp for ProblemExecutor {
@@ -21,7 +23,7 @@ impl ArgminOp for ProblemExecutor {
     type Float = f64;
 
     fn apply(&self, param: &Self::Param) -> Result<Self::Output, Error> {
-        let mut conn = self.pool.get_conn()?;
+        let mut conn = self.conn.borrow_mut();
         let param_vec = param.to_vec();
         let param_u8 = param_vec.as_byte_slice();
         let result =
@@ -33,7 +35,7 @@ impl ArgminOp for ProblemExecutor {
     }
 
     fn gradient(&self, param: &Self::Param) -> Result<Self::Param, Error> {
-        let mut conn = self.pool.get_conn()?;
+        let mut conn = self.conn.borrow_mut();
         let param_vec = param.to_vec();
         let param_u8 = param_vec.as_byte_slice();
         let result = conn.exec_first::<Vec<u8>, _, _>(
@@ -51,16 +53,23 @@ impl ArgminOp for ProblemExecutor {
 }
 
 fn main() -> SimpleResult<()> {
-    let url = "mysql://root:test@172.17.0.4:3306/numeromancy";
+    let url = "mysql://admin:mugFQjS9G65LMuFB2qar@svc-388d373a-716b-4adf-ac18-875d06b74a78-dml.aws-virginia-2.svc.singlestore.com/numeromancy";
     let pool = Pool::new(url)?;
+    let conn = pool.get_conn()?;
 
-    let cost = ProblemExecutor { pool };
+    let cost = ProblemExecutor {
+        conn: RefCell::new(conn),
+    };
     let init_param: Array1<f64> = array![0., 0., 0., 0., 0., 0., 0.];
     let init_hessian: Array2<f64> = Array2::eye(7);
     let linesearch = MoreThuenteLineSearch::new();
-    let solver = BFGS::new(init_hessian, linesearch);
+    let solver = BFGS::new(init_hessian, linesearch)
+        .with_tol_cost(1e-6)
+        .with_tol_grad(1e-8);
 
-    let executor = Executor::new(cost, solver, init_param).max_iters(50);
+    let executor = Executor::new(cost, solver, init_param)
+        .max_iters(50)
+        .add_observer(ArgminSlogLogger::term_noblock(), ObserverMode::Always);
     let result = executor.run()?;
 
     println!("{}", result);
