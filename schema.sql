@@ -56,3 +56,25 @@ create or replace function cancer_remission_grad(params_packed_f64 blob)
       remiss
     ))) as gradient
   from cancer_remission;
+
+delimiter //
+create or replace function cancer_remission_infer(x array(double not null))
+returns double as
+begin
+    return log_regression_infer([0,0,0,0,0,0,0], x);
+end //
+delimiter ;
+
+create or replace function cancer_remission_confusion()
+  returns table as return
+    select
+      sum(observed = 1 && predicted = 1) as true_positive,
+      sum(observed = 1 && predicted = 0) as false_negative,
+      sum(observed = 0 && predicted = 1) as false_positive,
+      sum(observed = 0 && predicted = 0) as true_negative
+    from (
+      select
+        remiss as observed,
+        if(cancer_remission_infer([1, cell, smear, infil, li, blast, temp]) > 0.5, 1, 0) as predicted
+      from cancer_remission
+    );
