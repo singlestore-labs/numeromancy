@@ -1,9 +1,10 @@
-use argmin::core::{CostFunction, Error, Executor, Gradient};
-use argmin::solver::gradientdescent::SteepestDescent;
+use argmin::prelude::*;
 use argmin::solver::linesearch::MoreThuenteLineSearch;
+use argmin::solver::quasinewton::BFGS;
 use byte_slice_cast::{AsByteSlice, AsSliceOf};
 use mysql::prelude::Queryable;
 use mysql::Pool;
+use ndarray::{array, Array1, Array2};
 use simple_error::SimpleError;
 
 type SimpleResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -12,48 +13,54 @@ struct ProblemExecutor {
     pool: Pool,
 }
 
-impl CostFunction for ProblemExecutor {
-    type Param = Vec<f64>;
+impl ArgminOp for ProblemExecutor {
+    type Param = Array1<f64>;
     type Output = f64;
+    type Hessian = Array2<f64>;
+    type Jacobian = ();
+    type Float = f64;
 
-    fn cost(&self, param: &Self::Param) -> Result<Self::Output, Error> {
+    fn apply(&self, param: &Self::Param) -> Result<Self::Output, Error> {
         let mut conn = self.pool.get_conn()?;
-        let param_u8 = param.as_byte_slice();
-        let result = conn.exec_first::<f64, _, _>("select opt_cost(?)", (param_u8,))?;
+        let param_vec = param.to_vec();
+        let param_u8 = param_vec.as_byte_slice();
+        let result =
+            conn.exec_first::<f64, _, _>("select cost from cancer_remission_cost(?)", (param_u8,))?;
         match result {
             Some(result) => Ok(result),
             None => Err(SimpleError::new("No result returned").into()),
         }
     }
-}
-
-impl Gradient for ProblemExecutor {
-    type Param = Vec<f64>;
-    type Gradient = Vec<f64>;
 
     fn gradient(&self, param: &Self::Param) -> Result<Self::Param, Error> {
         let mut conn = self.pool.get_conn()?;
-        let param_u8 = param.as_byte_slice();
-        let result = conn.exec_first::<Vec<u8>, _, _>("select opt_gradient(?)", (param_u8,))?;
+        let param_vec = param.to_vec();
+        let param_u8 = param_vec.as_byte_slice();
+        let result = conn.exec_first::<Vec<u8>, _, _>(
+            "select gradient from cancer_remission_grad(?)",
+            (param_u8,),
+        )?;
         match result {
-            Some(result) => Ok(result.as_slice_of::<f64>().unwrap().to_vec()),
+            Some(result) => Ok(Array1::from_shape_vec(
+                (7,),
+                result.as_slice_of::<f64>().unwrap().to_vec(),
+            )?),
             None => Err(SimpleError::new("No result returned").into()),
         }
     }
 }
 
 fn main() -> SimpleResult<()> {
-    let url = "mysql://root:test@172.17.0.3:3306/numeromancy";
+    let url = "mysql://root:test@172.17.0.4:3306/numeromancy";
     let pool = Pool::new(url)?;
 
-    let problem = ProblemExecutor { pool };
-    let init_param: Vec<f64> = vec![-1.2, 1.0];
+    let cost = ProblemExecutor { pool };
+    let init_param: Array1<f64> = array![0., 0., 0., 0., 0., 0., 0.];
+    let init_hessian: Array2<f64> = Array2::eye(7);
     let linesearch = MoreThuenteLineSearch::new();
-    let solver = SteepestDescent::new(linesearch);
+    let solver = BFGS::new(init_hessian, linesearch);
 
-    let executor =
-        Executor::new(problem, solver).configure(|state| state.param(init_param).max_iters(10));
-
+    let executor = Executor::new(cost, solver, init_param).max_iters(10);
     let result = executor.run()?;
 
     println!("{}", result);

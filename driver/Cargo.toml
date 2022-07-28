@@ -4,9 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-argmin = { git = "https://github.com/argmin-rs/argmin.git" }
-argmin-math = { git = "https://github.com/argmin-rs/argmin.git" }
-argmin_testfunctions = "0.1.1"
-mysql = "*"
+argmin = { version = "0.5.1", features = ["ndarrayl", "nalgebral", "ctrlc"] }
+mysql = "22.2.0"
 byte-slice-cast = "1.2.1"
 simple-error = "0.2.3"
+ndarray = "0.15.4"
+serde = "1"
+ndarray-linalg = { version = "0.14.1", features = ["openblas-static"] }

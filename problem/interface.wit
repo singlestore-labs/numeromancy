@@ -1,4 +1,5 @@
-type vec-f64 = list<u8>
+log-regression-cost: func(param: list<float64>, x: list<float64>, y: float64) -> float64
+log-regression-gradient: func(param: list<float64>, x: list<float64>, y: float64) -> list<float64>
 
-log-regression-cost: func(param: vec-f64, x: vec-f64) -> float64
-log-regression-gradient: func(param: vec-f64, x: vec-f64) -> vec-f64
+vec-pack-f64: func(v: list<float64>) -> list<u8>
+vec-unpack-f64: func(v: list<u8>) -> list<float64>
