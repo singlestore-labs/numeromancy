@@ -1,6 +1,10 @@
 create database if not exists numeromancy;
 use numeromancy;
 
+create or replace function log_regression_infer as wasm
+  from local infile "target/wasm32-wasi/release/numeromancy_problem.wasm"
+  with wit from local infile "problem/interface.wit";
+
 create or replace function log_regression_cost as wasm
   from local infile "target/wasm32-wasi/release/numeromancy_problem.wasm"
   with wit from local infile "problem/interface.wit";
@@ -34,12 +38,6 @@ delete from cancer_remission;
 load data local infile "data/cancer_remission.csv"
 into table cancer_remission
 columns terminated by ',';
-
--- notes on building vector
--- make sure to add a constant value of 1 to the front of the data vector
--- this is called the intercept
-
--- create view 
 
 create or replace function cancer_remission_cost(params_packed_f64 blob)
   returns table as return select

@@ -1,0 +1,24 @@
+[database]
+host = "172.17.0.4"
+port = 3306
+user = "root"
+password = "test"
+database = "numeromancy"
+
+[optimizer]
+init_param = [0, 0, 0, 0, 0, 0, 0]
+max_iters = 50
+
+[solver]
+type = "Bfgs"
+tol_cost = 1e-6
+tol_grad = 1e-8
+
+# type = "SteepestDescent"
+
+[problem]
+cost_fn = "cancer_remission_cost"
+grad_fn = "cancer_remission_grad"
+
+[output]
+fn_name = "cancer_remission_infer"

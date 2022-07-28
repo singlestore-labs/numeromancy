@@ -22,10 +22,13 @@ impl interface::Interface for Interface {
         v.as_slice_of::<f64>().unwrap().to_vec()
     }
 
-    fn log_regression_cost(param: Vec<f64>, x: Vec<f64>, y: f64) -> f64 {
+    fn log_regression_infer(param: Vec<f64>, x: Vec<f64>) -> f64 {
         let linp = vector_dot_product(&param, &x);
-        let pi = 1. / (1. + (-linp).exp());
+        1. / (1. + (-linp).exp())
+    }
 
+    fn log_regression_cost(param: Vec<f64>, x: Vec<f64>, y: f64) -> f64 {
+        let pi = Interface::log_regression_infer(param, x);
         if (y - 1.).abs() < EPS {
             -pi.ln()
         } else {

@@ -1,3 +1,4 @@
+log-regression-infer: func(param: list<float64>, x: list<float64>) -> float64
 log-regression-cost: func(param: list<float64>, x: list<float64>, y: float64) -> float64
 log-regression-gradient: func(param: list<float64>, x: list<float64>, y: float64) -> list<float64>
 

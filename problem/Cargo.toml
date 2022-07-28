@@ -5,12 +5,7 @@ edition = "2021"
 
 [dependencies]
 wit-bindgen-rust = { git = "https://github.com/bytecodealliance/wit-bindgen.git" }
-argmin = { git = "https://github.com/argmin-rs/argmin.git", features = [
-    "wasm-bindgen",
-] }
-argmin_testfunctions = "0.1.1"
 byte-slice-cast = "1.2.1"
-
 
 [lib]
 crate-type = ["cdylib"]
