@@ -60,7 +60,7 @@ fn main() -> SimpleResult<()> {
     let linesearch = MoreThuenteLineSearch::new();
     let solver = BFGS::new(init_hessian, linesearch);
 
-    let executor = Executor::new(cost, solver, init_param).max_iters(10);
+    let executor = Executor::new(cost, solver, init_param).max_iters(50);
     let result = executor.run()?;
 
     println!("{}", result);
