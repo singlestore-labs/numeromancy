@@ -17,6 +17,7 @@ The following instructions assume you are using [VS Code][vscode] and have opene
    ```
 4. Run the driver
    ```bash
+   cd driver
    cargo run
    ```
 
