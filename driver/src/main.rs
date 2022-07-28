@@ -4,6 +4,9 @@ use anyhow::Result;
 use argmin::prelude::*;
 use argmin::solver::gradientdescent::SteepestDescent;
 use argmin::solver::linesearch::MoreThuenteLineSearch;
+use argmin::solver::neldermead::NelderMead;
+use argmin::solver::newton::Newton;
+use argmin::solver::newton::NewtonCG;
 use argmin::solver::quasinewton::BFGS;
 use byte_slice_cast::{AsByteSlice, AsSliceOf};
 use clap::Parser;
@@ -73,6 +76,33 @@ impl ArgminOp for ProblemExecutor {
             None => Err(SimpleError::new("No result returned").into()),
         }
     }
+
+    fn hessian(&self, param: &Self::Param) -> Result<Self::Hessian, Error> {
+        let hess_fn = self
+            .conf
+            .hessian_fn
+            .as_ref()
+            .ok_or(ArgminError::NotImplemented {
+                text: "hess_fn not defined".to_string(),
+            })?;
+
+        let mut conn = self.conn.borrow_mut();
+        let param_vec = param.to_vec();
+        let param_u8 = param_vec.as_byte_slice();
+        let result = conn.exec_first::<Vec<u8>, _, _>(
+            format!("select hessian from {hess_fn}(?)"),
+            (param_u8,),
+        )?;
+
+        match result {
+            Some(result) => Ok(Array2::from_shape_vec(
+                (7, 7),
+                result.as_slice_of::<f64>().unwrap().to_vec(),
+            )?),
+
+            None => Err(SimpleError::new("No result returned").into()),
+        }
+    }
 }
 
 fn main() -> Result<()> {
@@ -103,6 +133,14 @@ fn main() -> Result<()> {
         }
         SolverConfig::SteepestDescent => {
             let solver = SteepestDescent::new(linesearch);
+            let executor = Executor::new(cost, solver, init_param)
+                .max_iters(config.optimizer.max_iters)
+                .add_observer(ArgminSlogLogger::term_noblock(), ObserverMode::Always);
+
+            executor.run()?
+        }
+        SolverConfig::NewtonCG { tol } => {
+            let solver = NewtonCG::new(linesearch).with_tol(tol)?;
             let executor = Executor::new(cost, solver, init_param)
                 .max_iters(config.optimizer.max_iters)
                 .add_observer(ArgminSlogLogger::term_noblock(), ObserverMode::Always);

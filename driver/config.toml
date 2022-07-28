@@ -10,15 +10,19 @@ init_param = [0, 0, 0, 0, 0, 0, 0]
 max_iters = 50
 
 [solver]
-type = "Bfgs"
-tol_cost = 1e-6
-tol_grad = 1e-8
+# type = "Bfgs"
+# tol_cost = 1e-6
+# tol_grad = 1e-8
 
 # type = "SteepestDescent"
+
+type = "NewtonCG"
+tol = 1e-6
 
 [problem]
 cost_fn = "cancer_remission_cost"
 grad_fn = "cancer_remission_grad"
+hessian_fn = "cancer_remission_hessian"
 
 [output]
 fn_name = "cancer_remission_infer"

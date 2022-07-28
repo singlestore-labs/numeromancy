@@ -46,4 +46,25 @@ impl interface::Interface for Interface {
 
         vector_mult(&x, fact)
     }
+
+    fn log_regression_hessian(param: Vec<f64>, x: Vec<f64>, y: f64) -> Vec<f64> {
+        let mut hess: Vec<f64> = vec![0.0; x.len() * x.len()];
+        let linp = vector_dot_product(&param, &x);
+        let prob: f64 = 1. / (1. + (-linp).exp());
+        let fact: f64 = if (y - 1.).abs() < EPS {
+            prob
+        } else {
+            1. / (1. + (-linp).exp())
+        } / (1. + linp.exp());
+
+        let mut index: usize = 0;
+        for i in 0..x.len() {
+            for j in 0..x.len() {
+                hess[index] = fact * x[i] * x[j];
+                index += 1;
+            }
+        }
+
+        hess
+    }
 }

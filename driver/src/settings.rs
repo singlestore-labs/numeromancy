@@ -35,6 +35,7 @@ pub struct OutputConfig {
 pub enum SolverConfig {
     Bfgs { tol_cost: f64, tol_grad: f64 },
     SteepestDescent,
+    NewtonCG { tol: f64 },
 }
 
 #[derive(Deserialize)]
