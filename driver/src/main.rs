@@ -4,8 +4,6 @@ use anyhow::Result;
 use argmin::prelude::*;
 use argmin::solver::gradientdescent::SteepestDescent;
 use argmin::solver::linesearch::MoreThuenteLineSearch;
-use argmin::solver::neldermead::NelderMead;
-use argmin::solver::newton::Newton;
 use argmin::solver::newton::NewtonCG;
 use argmin::solver::quasinewton::BFGS;
 use byte_slice_cast::{AsByteSlice, AsSliceOf};

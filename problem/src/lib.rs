@@ -50,8 +50,8 @@ impl interface::Interface for Interface {
     fn log_regression_hessian(param: Vec<f64>, x: Vec<f64>, y: f64) -> Vec<f64> {
         let mut hess: Vec<f64> = vec![0.0; x.len() * x.len()];
         let linp = vector_dot_product(&param, &x);
-        let prob: f64 = 1. / (1. + (-linp).exp());
-        let fact: f64 = if (y - 1.).abs() < EPS {
+        let prob = 1. / (1. + (-linp).exp());
+        let fact = if (y - 1.).abs() < EPS {
             prob
         } else {
             1. / (1. + (-linp).exp())
