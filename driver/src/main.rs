@@ -105,7 +105,8 @@ impl ArgminOp for ProblemExecutor {
 
 fn main() -> Result<()> {
     let args = settings::Args::parse();
-    let config_contents = std::fs::read_to_string(&args.config)?;
+    let config_contents = std::fs::read_to_string(&args.config)
+        .map_err(|e| SimpleError::new(format!("failed to load config file: {e}")))?;
     let config: Config = toml::from_str(config_contents.as_str())?;
     let pool = Pool::new(config.database)?;
 
@@ -156,7 +157,7 @@ fn main() -> Result<()> {
         create or replace function {output_fn_name}(x array(double not null))
         returns double as
         begin
-            return log_regression_infer({params_arr}, x);
+            return numeromancy.log_regression_infer({params_arr}, x);
         end
         "
     ))?;
